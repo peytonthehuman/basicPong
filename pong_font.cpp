@@ -43,7 +43,7 @@ character::~character() {
 //character* charArray;
 //int numChars;
 
-int font::getIdx(char id) {
+int font::getIdx(char id) const {
 	int retIdx = -1;
 	for(int i = 0; i < numChars; i++) {
 		if(charArray[i].getID()) {
@@ -55,7 +55,7 @@ int font::getIdx(char id) {
 	return retIdx;
 }
 
-int font::pos(int idx, int x, int y) {
+int font::pos(int idx, int x, int y) const {
 	if(x > charArray[idx].getW()) {
 		return -1;
 	} else if(y > charArray[idx].getH()) {
