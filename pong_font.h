@@ -24,6 +24,8 @@ class font { // font class
 	private:
 		character* charArray;
 		int numChars;
+		int getIdx(char id) const;
+		int pos(int idx, int x, int y) const;
 	public:
 		font();
 		character& getChar(char id);
