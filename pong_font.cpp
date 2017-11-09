@@ -43,6 +43,28 @@ character::~character() {
 //character* charArray;
 //int numChars;
 
+int font::getIdx(char id) {
+	int retIdx = -1;
+	for(int i = 0; i < numChars; i++) {
+		if(charArray[i].getID()) {
+			retIdx = 0;
+			break;
+		}
+	}
+	
+	return retIdx;
+}
+
+int font::pos(int idx, int x, int y) {
+	if(x > charArray[idx].getW()) {
+		return -1;
+	} else if(y > charArray[idx].getH()) {
+		return -1;
+	}
+	
+	return (y * charArray[idx].getW() + x);
+}
+
 font::font() {
 	numChars = 1;
 	charArray = new character [numChars];
@@ -59,25 +81,34 @@ font::font() {
 }
 
 character& font::getChar(char id) {
-	character* nullChar = new character;
-	for(int i = 0; i < numChars; i++) {
-		if(charArray[i].getID()) {
-			return charArray[i];
-		}
+	character* retCharacter = new character;
+	int index = getIdx(id);
+	if(index != -1) {
+		retCharacter = charArray[index];
 	}
-	return *nullChar;
+	return retCharacter;
 }
 
 bool font::getCharAt(char id, int index) {
-	bool* temp = getChar(id).getMap();
-	if(temp) {
-		return temp[index];
+	character* temp = getChar(id);
+	bool tempPoint = false;
+	if(temp->getMap()) {
+		if(index < (temp->getW() * temp->getH())) {
+			tempPoint = temp->getMap()[index];
+		}
 	}
-	return false;
+	return tempPoint;
 }
 
 bool font::getCharAt(char id, int x, int y) {
-	return false;
+	character* temp = getChar(id);
+	bool tempPoint = false;
+	if(temp->getMap()) {
+		if(index < (temp->getW() * temp->getH())) {
+			tempPoint = temp->getMap()[pos(x, y, temp->getW())];
+		}
+	}
+	return tempPoint;
 }
 
 font::~font() {
