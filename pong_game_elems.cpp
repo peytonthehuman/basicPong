@@ -193,7 +193,7 @@ triple* textBox::renderTextBox() const {
 						(render[h].y + text.y) < i && i <= (render[h].y + text.y + render[h].h)
 					  ) {
 						if(activeFont->getCharAt(content[pos(j, i, numColumns)], 
-									j - text.x - render[h].x, i - text.y - render[h].y) {
+									j - text.x - render[h].x, i - text.y - render[h].y)) {
 							pixelArray[pos(j, i, box.w)] = fg_color;
 						} else {
 							pixelArray[pos(j, i, box.w)] = bg_color;
