@@ -1,5 +1,5 @@
-#include "../fb_main.h"
-#include "./pong_game_elems.h"
+#include "./fb_main.h"
+#include "./pong_font.h"
 
 // character object, which is used to display characters on screen
 
@@ -60,7 +60,6 @@ font::font() {
 
 character& font::getChar(char id) {
 	character* nullChar = new character;
-	nullChar->init(0, nullptr, 0, 0);
 	for(int i = 0; i < numChars; i++) {
 		if(charArray[i].getID()) {
 			return charArray[i];
@@ -70,10 +69,9 @@ character& font::getChar(char id) {
 }
 
 bool font::getCharAt(char id, int index) {
-	for(int i = 0; i < numChars; i++) {
-		if(charArray[i].getID() == id) {
-			return charArray[i].getMap()[index];
-		}
+	bool* temp = getChar(id).getMap();
+	if(temp) {
+		return temp[index];
 	}
 	return false;
 }
