@@ -17,18 +17,54 @@ struct rectangle {
 };*/
 
 // textbox object definitions
-
+#include <iostream>
 bool textBox::charRender(char num, int x, int y, int w, int h) const {
-	int charX = x / ((double)w/activeFont->getChar(num).getW());
-	int charY = y / ((double)h/activeFont->getChar(num).getH());
-	character render = activeFont->getChar(num);
-	return render.getMap()[charY * render.getW() + charX];
+	character* render = activeFont->getChar(num);
+	//int charX = x/((double)w/(render->getW()));
+	//int charY = y/((double)h/(render->getH()));
+	int charX = ((double)x/(double)w) * render->getW();
+	int charY = ((double)y/(double)h) * render->getH();
+	bool * map = render->getMap();
+	return map[charY * render->getW() + charX];
+}
+
+textBox::textBox() {
+	numColumns = 0;
+	numRows = 0;
+	content = nullptr;
+	cache_map = nullptr;
+	
+	box.x = 0;
+	box.y = 0;
+	box.w = 0;
+	box.h = 0;
+	
+	text.x = 0;
+	text.y = 0;
+	text.w = 0;
+	text.h = 0;
+	
+	fg_color.x = 0;
+	fg_color.y = 0;
+	fg_color.z = 0;
+	
+	bg_color.x = 0;
+	bg_color.y = 0;
+	bg_color.z = 0;
+	
+	activeFont = nullptr;
+	
+	return;
 }
 
 textBox::textBox(int columns, int rows) {
 	numColumns = columns;
 	numRows = rows;
 	content = new char[rows * columns];
+	for(int i = 0; i < rows * columns; i++) {
+		content[i] = '0';
+	}
+	cache_map = nullptr;
 
 	box.x = 0;
 	box.y = 0;
@@ -49,9 +85,17 @@ textBox::textBox(int columns, int rows) {
 	bg_color.z = 0;
 
 	activeFont = nullptr;
-	fb_dev = nullptr;
 
 	return;
+}
+
+void textBox::init(int columns, int rows) {
+	numColumns = columns;
+	numRows = rows;
+	content = new char[rows * columns];
+	for(int i = 0; i < rows * columns; i++) {
+		content[i] = '0';
+	}
 }
 
 void textBox::setActiveFont(font* in) {
@@ -61,15 +105,6 @@ void textBox::setActiveFont(font* in) {
 
 font* textBox::getActiveFont() const {
 	return activeFont;
-}
-
-void textBox::setActiveFB(fb_driver* in) {
-	fb_dev = in;
-	return;
-}
-
-fb_driver* textBox::getActiveFB() const {
-	return fb_dev;
 }
 
 int textBox::getColumns() const {
@@ -98,20 +133,20 @@ void textBox::setCharacter(char in, int row, int column) {
 	return;
 }
 
-int textBox::getBoxWidth() const {
+int textBox::getBoxW() const {
 	return box.w;
 }
 
-int textBox::getBoxHeight() const {
+int textBox::getBoxH() const {
 	return box.h;
 }
 
-void textBox::setBoxWidth(int in) {
+void textBox::setBoxW(int in) {
 	box.w = in;
 	return;
 }
 
-void textBox::setBoxHeight(int in) {
+void textBox::setBoxH(int in) {
 	box.h = in;
 	return;
 }
@@ -143,14 +178,14 @@ int textBox::getTextMarginVertical() const {
 }
 
 void textBox::setTextMarginHorizontal(int in) {
-	text.x = in/2;
-	text.w = box.w - in/2;
+	text.x = in - 1;
+	text.w = box.w - 2 * (in - 2);
 	return;
 }
 
 void textBox::setTextMarginVertical(int in) {
-	text.y = in/2;
-	text.h = box.h - in/2;
+	text.y = in - 1;
+	text.h = box.h - 2 * (in - 2);
 	return;
 }
 
@@ -171,85 +206,191 @@ void textBox::setBGColor(triple in) {
 	bg_color = in;
 	return;
 }
-		
-triple* textBox::renderTextBox() const {
-	triple* pixelArray = new triple[box.w * box.h];
+
+bool textBox::renderTextBox() {
+	// consider optimizing by selectively rerendering based on what has changed.
+	if(cache_map != nullptr) {
+		delete [] cache_map;
+	}
+	
+	cache_map = new triple[box.w * box.h];
+	
 	rectangle* render = new rectangle[numRows * numColumns];
-	for(int i = 0; i < numColumns; i++) {
-		for(int j = 0; j < numRows; j++) {
-			int idx = pos(j, i, numColumns);
+	for(int ry = 0; ry < numRows; ry++) {
+		for(int rx = 0; rx < numColumns; rx++) {
+			int idx = pos(rx, ry, numColumns);
 			render[idx].w = text.w / numColumns;
 			render[idx].h = text.h / numRows;
-			render[idx].x = render[idx].w * j;
-			render[idx].y = render[idx].h * i;
+			render[idx].x = render[idx].w * rx;
+			render[idx].y = render[idx].h * ry;
 		}
 	}
-
-	for(int i = 0; i < box.h; i++) {
-		for(int j = 0; j < box.w; j++) {
-			if(text.x < j && j <= (text.w + text.x) && text.y < i && i <= (text.h + text.y)) {
-				for(int h = 0; h < numRows * numColumns; h++) {
-					if((render[h].x + text.x) < j && j <= (render[h].x + text.x + render[h].w) &&
-						(render[h].y + text.y) < i && i <= (render[h].y + text.y + render[h].h)
-					  ) {
-						if(activeFont->getCharAt(content[pos(j, i, numColumns)], 
-									j - text.x - render[h].x, i - text.y - render[h].y)) {
-							pixelArray[pos(j, i, box.w)] = fg_color;
+	
+	for(int by = 0; by < box.h; by++) {
+		for(int bx = 0; bx < box.w; bx++) {
+			if(text.y <= by && by < (text.y + text.h) && text.x <= bx && bx < (text.x + text.w)) {
+				for(int idx = 0; idx < numRows * numColumns; idx++) {
+					bool test = render[idx].y + text.y <= by && by < (render[idx].y + text.y + render[idx].h);
+					test = test && render[idx].x + text.x <= bx && bx < (render[idx].x + text.x + render[idx].w);
+					if(test) {
+						if(charRender(content[idx],
+						bx - render[idx].x - text.x,
+						by - render[idx].y - text.y,
+						render[idx].w, render[idx].h)) {
+							cache_map[pos(bx, by, box.w)] = fg_color;
 						} else {
-							pixelArray[pos(j, i, box.w)] = bg_color;
+							cache_map[pos(bx, by, box.w)] = bg_color;
 						}
 					}
 				}
 			} else {
-				pixelArray[pos(j, i, box.w)] = bg_color;
+				cache_map[pos(bx, by, box.w)] = bg_color;
 			}
 		}
 	}
+	
+	return 1;
+}
 
-	delete [] render;
-
-	return pixelArray;
+triple* textBox::getCache() const {
+	return cache_map;
 }
 
 textBox::~textBox() {
 	delete [] content;
+	if(cache_map != nullptr) {
+		delete [] cache_map;
+	}
 	return;
 }
+
+paddle::paddle() {
+	pid = '\0';
+	
+	color.x = 0;
+	color.y = 0;
+	color.z = 0;
+	
+	paddleobj.x = 0;
+	paddleobj.y = 0;
+	paddleobj.w = 0;
+	paddleobj.h = 0;
+	
+	return;
+}
+
+paddle::paddle(char id) {
+	pid = id;
+	
+	color.x = 0;
+	color.y = 0;
+	color.z = 0;
+	
+	paddleobj.x = 0;
+	paddleobj.y = 0;
+	paddleobj.w = 0;
+	paddleobj.h = 0;
+	
+	return;
+}
+
+void paddle::setID(char id) {
+	pid = id;
+}
+
+char paddle::getID() const {
+	return pid;
+}
+
+void paddle::setPaddleDX(int in) {
+	dx = in;
+}
+
+void paddle::setPaddleDY(int in) {
+	dy = in;
+}
+
+int paddle::getPaddleDX() const {
+	return dx;
+}
+
+int paddle::getPaddleDY() const {
+	return dy;
+}
+
+void paddle::setPaddleX(int in) {
+	paddleobj.x = in;
+}
+
+void paddle::setPaddleY(int in) {
+	paddleobj.y = in;
+}
+
+int paddle::getPaddleX() const {
+	return paddleobj.x;
+}
+
+int paddle::getPaddleY() const {
+	return paddleobj.y;
+}
+
+void paddle::setPaddleW(int in) {
+	paddleobj.w = in;
+}
+
+void paddle::setPaddleH(int in) {
+	paddleobj.h = in;
+}
+
+int paddle::getPaddleW() const {
+	return paddleobj.w;
+}
+
+int paddle::getPaddleH() const {
+	return paddleobj.h;
+}
+
+triple paddle::getColor() const {
+	return color;
+}
+
+void paddle::setColor(triple& in) {
+	color = in;
+}
+
+bool paddle::testCollide(const rectangle& collider) const {
+	int colliderPoints[] = {collider.x, collider.x + collider.w, collider.y, collider.y + collider.h};
+	bool collidetest = paddleobj.x <= colliderPoints[0] && colliderPoints[0] < (paddleobj.x + paddleobj.w);
+	collidetest = collidetest || (paddleobj.x <= colliderPoints[1] && colliderPoints[1] < (paddleobj.x + paddleobj.w));
+	collidetest = collidetest || (paddleobj.y <= colliderPoints[2] && colliderPoints[2] < (paddleobj.y + paddleobj.h));
+	collidetest = collidetest || (paddleobj.y <= colliderPoints[3] && colliderPoints[3] < (paddleobj.y + paddleobj.h));
+	
+	return collidetest;
+}
+
+void paddle::tickMovement() {
+	if(dx > 0) {
+		paddleobj.x++;
+		dx--;
+	} else if(dx < 0) {
+		paddleobj.x--;
+		dx++;
+	}
+	
+	if(dy > 0) {
+		paddleobj.y++;
+		dy--;
+	} else if(dy < 0) {
+		paddleobj.y--;
+		dy++;
+	}
+}
+
+paddle::~paddle() {
+	return;
+}
+
 /*
-class paddle {
-	private:
-		rectangle paddleobj;
-		char pid;
-		triple color;
-	public:
-		paddle(char pid);
-		paddle(char pid, int x, int y);
-
-		void setPaddleDX(int in);
-		void setPaddleDY(int in);
-		int getPaddleDX() const;
-		int getPaddleDY() const;
-
-		void setPaddlePosX(int in);
-		void setPaddlePosY(int in);
-		int getPaddlePosX() const;
-		int getPaddlePosY() const;
-
-		void setPaddleWidth(int in);
-		void setPaddleHeight(int in);
-		int getPaddleWidth() const;
-		int getPaddleHeight() const;
-
-		triple getColor() const;
-		void setColor(triple& in);
-
-		triple* renderPaddle() const;
-
-		bool testCollide(const rectangle& collider) const;
-
-		~paddle();
-};
-
 class line {
 	private:
 		bool orientation; //false - horizontal , true - vertical

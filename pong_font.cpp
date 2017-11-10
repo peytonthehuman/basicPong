@@ -46,8 +46,8 @@ character::~character() {
 int font::getIdx(char id) const {
 	int retIdx = -1;
 	for(int i = 0; i < numChars; i++) {
-		if(charArray[i].getID()) {
-			retIdx = 0;
+		if(charArray[i].getID() == id) {
+			retIdx = i;
 			break;
 		}
 	}
@@ -66,48 +66,149 @@ int font::pos(int idx, int x, int y) const {
 }
 
 font::font() {
-	numChars = 1;
+	numChars = 10;
 	charArray = new character [numChars];
-	bool* temp = new bool[6 * 6] {
+	bool* temp = new bool[6 * 8] {
+		0,0,0,0,0,0,
 		0,0,1,1,0,0,
 		0,1,0,0,1,0,
 		0,1,0,0,1,0,
 		0,1,0,0,1,0,
 		0,1,0,0,1,0,
-		0,0,1,1,0,0};
-	charArray[1].init('0', temp, 6, 6);
-	delete [] temp;
+		0,0,1,1,0,0,
+		0,0,0,0,0,0,};
+	charArray[0].init('0', temp, 6, 8);
+	
+	temp = new bool[6 * 8] {
+		0,0,0,0,0,0,
+		0,0,0,1,0,0,
+		0,0,1,1,0,0,
+		0,0,0,1,0,0,
+		0,0,0,1,0,0,
+		0,0,0,1,0,0,
+		0,1,1,1,1,0,
+		0,0,0,0,0,0};
+	charArray[1].init('1', temp, 6, 8);
+	
+	temp = new bool[6 * 8] {
+		0,0,0,0,0,0,
+		0,0,1,1,0,0,
+		0,1,0,0,1,0,
+		0,0,0,0,1,0,
+		0,0,0,1,0,0,
+		0,0,1,0,0,0,
+		0,1,1,1,1,0,
+		0,0,0,0,0,0};
+	charArray[2].init('2', temp, 6, 8);
+	
+	temp = new bool[6 * 8] {
+		0,0,0,0,0,0,
+		0,0,1,1,0,0,
+		0,1,0,0,1,0,
+		0,0,0,1,0,0,
+		0,0,0,0,1,0,
+		0,1,0,0,1,0,
+		0,0,1,1,0,0,
+		0,0,0,0,0,0};
+	charArray[3].init('3', temp, 6, 8);
+	
+	temp = new bool[6 * 8] {
+		0,0,0,0,0,0,
+		0,0,0,0,1,0,
+		0,0,0,1,1,0,
+		0,0,1,0,1,0,
+		0,1,1,1,1,0,
+		0,0,0,0,1,0,
+		0,0,0,0,1,0,
+		0,0,0,0,0,0};
+	charArray[4].init('4', temp, 6, 8);
+	
+	temp = new bool[6 * 8] {
+		0,0,0,0,0,0,
+		0,1,1,1,0,0,
+		0,1,0,0,0,0,
+		0,1,1,1,0,0,
+		0,0,0,0,1,0,
+		0,0,0,0,1,0,
+		0,1,1,1,0,0,
+		0,0,0,0,0,0};
+	charArray[5].init('5', temp, 6, 8);
+	
+	temp = new bool[6 * 8] {
+		0,0,0,0,0,0,
+		0,0,1,1,0,0,
+		0,1,0,0,0,0,
+		0,1,1,1,0,0,
+		0,1,0,0,1,0,
+		0,1,0,0,1,0,
+		0,0,1,1,0,0,
+		0,0,0,0,0,0};
+	charArray[6].init('6', temp, 6, 8);
+	
+	temp = new bool[6 * 8] {
+		0,0,0,0,0,0,
+		0,1,1,1,1,0,
+		0,0,0,0,1,0,
+		0,0,0,0,1,0,
+		0,0,0,1,0,0,
+		0,0,0,1,0,0,
+		0,0,1,0,0,0,
+		0,0,0,0,0,0};
+	charArray[7].init('7', temp, 6, 8);
+	
+	temp = new bool[6 * 8] {
+		0,0,0,0,0,0,
+		0,0,1,1,0,0,
+		0,1,0,0,1,0,
+		0,0,1,1,0,0,
+		0,1,0,0,1,0,
+		0,1,0,0,1,0,
+		0,0,1,1,0,0,
+		0,0,0,0,0,0};
+	charArray[8].init('8', temp, 6, 8);
+	
+	temp = new bool[6 * 8] {
+		0,0,0,0,0,0,
+		0,0,1,1,0,0,
+		0,1,0,0,1,0,
+		0,1,0,0,1,0,
+		0,0,1,1,1,0,
+		0,0,0,0,1,0,
+		0,0,1,1,0,0,
+		0,0,0,0,0,0};
+	charArray[9].init('9', temp, 6, 8);
+	
 	return;
 }
 
-character font::getChar(char id) {
-	character retCharacter;
+character* font::getChar(char id) {
+	character* retCharacter;
 	int index = getIdx(id);
 	if(index != -1) {
-		retCharacter = charArray[index];
+		retCharacter = &charArray[index];
 	}
 	return retCharacter;
 }
 
 bool font::getCharAt(char id, int index) {
-	character temp = getChar(id);
+	character* temp = getChar(id);
 	bool tempPoint = false;
-	if(temp.getMap()) {
-		int arraySize = temp.getW() * temp.getH();
+	if(temp->getMap()) {
+		int arraySize = temp->getW() * temp->getH();
 		if(index < arraySize) {
-			tempPoint = temp.getMap()[index];
+			tempPoint = temp->getMap()[index];
 		}
 	}
 	return tempPoint;
 }
 
 bool font::getCharAt(char id, int x, int y) {
-	character temp = getChar(id);
+	character *temp = getChar(id);
 	bool tempPoint = false;
-	if(temp.getMap()) {
-		int arraySize = temp.getW() * temp.getH();
-		if(pos(x, y, temp.getW()) < arraySize) {
-			tempPoint = temp.getMap()[pos(x, y, temp.getW())];
+	if(temp->getMap()) {
+		int arraySize = temp->getW() * temp->getH();
+		if(pos(x, y, temp->getW()) < arraySize) {
+			tempPoint = temp->getMap()[pos(x, y, temp->getW())];
 		}
 	}
 	return tempPoint;

@@ -23,20 +23,19 @@ class textBox {
 
 		triple fg_color;
 		triple bg_color;
+		triple* cache_map;
 
 		font* activeFont;
-		fb_driver* fb_dev;
 		
 		bool charRender(char num, int x, int y, int w, int h) const;
 
 	public:
+		textBox();
 		textBox(int numColumns, int numRows);
+		void init(int numColumns, int numRows);
 
 		void setActiveFont(font* in);
 		font* getActiveFont() const;
-
-		void setActiveFB(fb_driver* in);
-		fb_driver* getActiveFB() const;
 
 		int getColumns() const;
 		int getRows() const;
@@ -46,10 +45,10 @@ class textBox {
 		void setCharacter(char in, int index);
 		void setCharacter(char in, int row, int column);
 
-		int getBoxWidth() const;
-		int getBoxHeight() const;
-		void setBoxWidth(int in);
-		void setBoxHeight(int in);
+		int getBoxW() const;
+		int getBoxH() const;
+		void setBoxW(int in);
+		void setBoxH(int in);
 
 		int getBoxX() const;
 		int getBoxY() const;
@@ -66,7 +65,8 @@ class textBox {
 		void setFGColor(triple in);
 		void setBGColor(triple in);
 		
-		triple* renderTextBox() const;
+		bool renderTextBox();
+		triple* getCache() const;
 
 		~textBox();
 };
@@ -76,29 +76,34 @@ class paddle {
 		rectangle paddleobj;
 		char pid;
 		triple color;
+		int dx;
+		int dy;
 	public:
-		paddle(char pid);
-		paddle(char pid, int x, int y);
+		paddle();
+		paddle(char id);
+		
+		void setID(char id);
+		char getID() const;
 
 		void setPaddleDX(int in);
 		void setPaddleDY(int in);
 		int getPaddleDX() const;
 		int getPaddleDY() const;
 
-		void setPaddlePosX(int in);
-		void setPaddlePosY(int in);
-		int getPaddlePosX() const;
-		int getPaddlePosY() const;
+		void setPaddleX(int in);
+		void setPaddleY(int in);
+		int getPaddleX() const;
+		int getPaddleY() const;
 
-		void setPaddleWidth(int in);
-		void setPaddleHeight(int in);
-		int getPaddleWidth() const;
-		int getPaddleHeight() const;
+		void setPaddleW(int in);
+		void setPaddleH(int in);
+		int getPaddleW() const;
+		int getPaddleH() const;
 
 		triple getColor() const;
 		void setColor(triple& in);
-
-		triple* renderPaddle() const;
+		
+		void tickMovement();
 
 		bool testCollide(const rectangle& collider) const;
 
