@@ -80,8 +80,8 @@ font::font() {
 	return;
 }
 
-character& font::getChar(char id) {
-	character* retCharacter = new character;
+character font::getChar(char id) {
+	character retCharacter;
 	int index = getIdx(id);
 	if(index != -1) {
 		retCharacter = charArray[index];
@@ -90,22 +90,24 @@ character& font::getChar(char id) {
 }
 
 bool font::getCharAt(char id, int index) {
-	character* temp = getChar(id);
+	character temp = getChar(id);
 	bool tempPoint = false;
-	if(temp->getMap()) {
-		if(index < (temp->getW() * temp->getH())) {
-			tempPoint = temp->getMap()[index];
+	if(temp.getMap()) {
+		int arraySize = temp.getW() * temp.getH();
+		if(index < arraySize) {
+			tempPoint = temp.getMap()[index];
 		}
 	}
 	return tempPoint;
 }
 
 bool font::getCharAt(char id, int x, int y) {
-	character* temp = getChar(id);
+	character temp = getChar(id);
 	bool tempPoint = false;
-	if(temp->getMap()) {
-		if(index < (temp->getW() * temp->getH())) {
-			tempPoint = temp->getMap()[pos(x, y, temp->getW())];
+	if(temp.getMap()) {
+		int arraySize = temp.getW() * temp.getH();
+		if(pos(x, y, temp.getW()) < arraySize) {
+			tempPoint = temp.getMap()[pos(x, y, temp.getW())];
 		}
 	}
 	return tempPoint;

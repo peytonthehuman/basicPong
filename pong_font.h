@@ -28,7 +28,7 @@ class font { // font class
 		int pos(int idx, int x, int y) const;
 	public:
 		font();
-		character& getChar(char id);
+		character getChar(char id);
 		bool getCharAt(char id, int index);
 		bool getCharAt(char id, int x, int y);
 		~font();
