@@ -105,7 +105,7 @@ class paddle {
 		
 		void tickMovement();
 
-		bool testCollide(const rectangle& collider) const;
+		int testCollide(const rectangle& collider) const;
 
 		~paddle();
 };
@@ -121,16 +121,22 @@ class line {
 
 		triple fg_color;
 		triple bg_color;
+		triple* cache_map;
 	public:
-		line(bool orient);
+		line();
 
 		bool getOrientation() const;
 		void flipOrientation();
 
-		void setLineWidth(int in);
-		void setLineHeight(int in);
-		int getLineWidth() const;
-		int getLineHeight() const;
+		void setLineX(int in);
+		void setLineY(int in);
+		int getLineX() const;
+		int getLineY() const;
+		
+		void setLineW(int in);
+		void setLineH(int in);
+		int getLineW() const;
+		int getLineH() const;
 
 		void setDashed(bool in);
 		bool isDashed() const;
@@ -145,7 +151,8 @@ class line {
 		triple getFG_Color() const;
 		triple getBG_Color() const;
 
-		triple* renderLine() const;
+		bool renderLine();
+		triple* getCache() const;
 
 		~line();
 };

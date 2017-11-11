@@ -358,14 +358,24 @@ void paddle::setColor(triple& in) {
 	color = in;
 }
 
-bool paddle::testCollide(const rectangle& collider) const {
+int paddle::testCollide(const rectangle& collider) const {
 	int colliderPoints[] = {collider.x, collider.x + collider.w, collider.y, collider.y + collider.h};
-	bool collidetest = paddleobj.x <= colliderPoints[0] && colliderPoints[0] < (paddleobj.x + paddleobj.w);
-	collidetest = collidetest || (paddleobj.x <= colliderPoints[1] && colliderPoints[1] < (paddleobj.x + paddleobj.w));
-	collidetest = collidetest || (paddleobj.y <= colliderPoints[2] && colliderPoints[2] < (paddleobj.y + paddleobj.h));
-	collidetest = collidetest || (paddleobj.y <= colliderPoints[3] && colliderPoints[3] < (paddleobj.y + paddleobj.h));
+	bool collide1 = paddleobj.x <= colliderPoints[0] && colliderPoints[0] < (paddleobj.x + paddleobj.w);
+	bool collide2 = paddleobj.x <= colliderPoints[1] && colliderPoints[1] < (paddleobj.x + paddleobj.w);
+	bool collide3 = paddleobj.y <= colliderPoints[2] && colliderPoints[2] < (paddleobj.y + paddleobj.h);
+	bool collide4 = paddleobj.y <= colliderPoints[3] && colliderPoints[3] < (paddleobj.y + paddleobj.h);
 	
-	return collidetest;
+	if(collide1 && (collide3 || collide4)) {
+		return 1;
+	} else if(collide2 && (collide3 || collide4)) {
+		return 2;
+	} else if(collide3 && (collide1 || collide2)) {
+		return 3;
+	} else if(collide4 && (collide1 || collide2)) {
+		return 4;
+	} else {
+		return 0;
+	}
 }
 
 void paddle::tickMovement() {
@@ -391,42 +401,184 @@ paddle::~paddle() {
 }
 
 /*
-class line {
-	private:
-		bool orientation; //false - horizontal , true - vertical
-		rectangle container;
+bool orientation; //false - horizontal , true - vertical
+rectangle container;
 
-		bool dashed;
-		int dash_length;
-		int dash_margin;
+bool dashed;
+int dash_length;
+int dash_margin;
 
-		triple fg_color;
-		triple bg_color;
-	public:
-		line(bool orient);
+triple fg_color;
+triple bg_color;
+triple* cache_map;
+*/
 
-		bool getOrientation() const;
-		void flipOrientation();
+line::line() {
+	orientation = false;
 
-		void setLineWidth(int in);
-		void setLineHeight(int in);
-		int getLineWidth() const;
-		int getLineHeight() const;
+	container.x = 0;
+	container.y = 0;
+	container.w = 0;
+	container.h = 0;
+	
+	dashed = false;
+	dash_length = 0;
+	dash_margin = 0;
+	
+	fg_color.x = 0;
+	fg_color.y = 0;
+	fg_color.z = 0;
+	
+	bg_color.x = 0;
+	bg_color.y = 0;
+	bg_color.z = 0;
+	
+	cache_map = nullptr;
+}
 
-		void setDashed(bool in);
-		bool isDashed() const;
+bool line::getOrientation() const {
+	return orientation;
+}
 
-		void setDashLength(int in);
-		void setDashMargin(int in);
-		int getDashLength() const;
-		int getDashMargin() const;
+void line::flipOrientation() {
+	orientation = !orientation;
+	return;
+}
 
-		void setFG_Color(triple& color);
-		void setBG_Color(triple& color);
-		triple getFG_Color() const;
-		triple getBG_Color() const;
+void line::setLineX(int in) {
+	container.x = in;
+	return;
+}
 
-		triple* renderLine() const;
+void line::setLineY(int in) {
+	container.y = in;
+	return;
+}
 
-		~line();
-};*/
+int line::getLineX() const {
+	return container.x;
+}
+
+int line::getLineY() const {
+	return container.y;
+}
+
+void line::setLineW(int in) {
+	container.w = in;
+	return;
+}
+
+void line::setLineH(int in) {
+	container.h = in;
+	return;
+}
+
+int line::getLineW() const {
+	return container.w;
+}
+
+int line::getLineH() const {
+	return container.h;
+}
+
+void line::setDashed(bool in) {
+	dashed = in;
+	return;
+}
+
+bool line::isDashed() const {
+	return dashed;
+}
+
+void line::setDashLength(int in) {
+	dash_length = in;
+	return;
+}
+
+void line::setDashMargin(int in) {
+	dash_margin = in;
+	return;
+}
+
+int line::getDashLength() const {
+	return dash_length;
+}
+
+int line::getDashMargin() const {
+	return dash_margin;
+}
+
+void line::setFG_Color(triple& color) {
+	fg_color = color;
+}
+
+void line::setBG_Color(triple& color) {
+	bg_color = color;
+}
+
+triple line::getFG_Color() const {
+	return fg_color;
+}
+
+triple line::getBG_Color() const {
+	return bg_color;
+}
+
+bool line::renderLine() {
+	if(cache_map != nullptr) {
+		delete [] cache_map;
+	}
+	
+	cache_map = new triple[container.w * container.h];
+	
+	if(!dashed) {
+		for(int i = 0; i < container.w * container.h; i++) {
+			cache_map[i] = fg_color;
+		}
+	} else {
+		if(orientation) {
+			for(int sy = 0; sy < container.h; sy++) {
+				int current = 0;
+				for(int sx = 0; sx < container.w; sx++) {
+					current++;
+					if(current >= dash_length + dash_margin) {
+						current = 0;
+					}
+					
+					if(current < dash_length) {
+						cache_map[sy * container.w + sx] = fg_color;
+					} else if(dash_length <= current && current < dash_length + dash_margin) {
+						cache_map[sy * container.w + sx] = bg_color;
+					}
+				}
+			}
+		} else {
+			for(int sx = 0; sx < container.w; sx++) {
+				int current = 0;
+				for(int sy = 0; sy < container.h; sy++) {
+					current++;
+					if(current >= dash_length + dash_margin) {
+						current = 0;
+					}
+					
+					if(current < dash_length) {
+						cache_map[sy * container.w + sx] = fg_color;
+					} else if(dash_length <= current && current < dash_length + dash_margin) {
+						cache_map[sy * container.w + sx] = bg_color;
+					}
+				}
+			}
+		}
+	}
+	
+	return cache_map;
+}
+
+triple* line::getCache() const {
+	return cache_map;
+}
+
+line::~line() {
+	delete [] cache_map;
+	return;
+}
