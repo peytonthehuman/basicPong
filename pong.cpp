@@ -70,11 +70,13 @@ void resetPuck(bool x_dir, rectangle& puck, int& puck_dx, int& puck_dy, fb_drive
 int main() {
 	system("setterm --cursor off");
 
+	srand(time(NULL));
 	fb_driver fb(true, false);
 	fb.init();
 	
 	const int NUMPLAYERS = 2;
 	font mainFont;
+	int* score = new int[NUMPLAYERS];
 	textBox* scores = new textBox[NUMPLAYERS];
 	paddle* players = new paddle[NUMPLAYERS];
 	triple* colors = new triple[2];
@@ -105,6 +107,7 @@ int main() {
 	scores[0].renderTextBox();
 	scores[1].renderTextBox();
 	
+	// need a reset players function
 	for(int i = 0; i < NUMPLAYERS; i++) {
 		players[i].setID('0' + i);
 		players[i].setPaddleW(fb.getScreenX()/80);
@@ -132,11 +135,25 @@ int main() {
 	int puck_dx, puck_dy;
 	resetPuck(true, puck, puck_dx, puck_dy, fb);
 	
-	for(int i = 0; i < (30 * 20); i++) {
+	while(score[0] < 1 || score[1] < 1) {
 		puck.x += puck_dx;
 		puck.y += puck_dy;
-		if (puck.x + puck.w >= fb.getScreenX() || puck.x < 0) {
-			break;
+		if (puck.x + puck.w >= fb.getScreenX()) {
+			score[1]++;
+			scores[1].setCharacter('0' + score[1]%10, 2);
+			scores[1].setCharacter('0' + (score[1]/10)%10, 1);
+			scores[1].setCharacter('0' + ((score[1]/10)/10)%10, 0);
+			resetPuck(false, puck, puck_dx, puck_dy, fb);
+			scores[1].renderTextBox();
+			continue;
+		} else if(puck.x < 0) {
+			score[0]++;
+			scores[0].setCharacter('0' + score[0]%10, 2);
+			scores[0].setCharacter('0' + (score[0]/10)%10, 1);
+			scores[0].setCharacter('0' + ((score[0]/10)/10)%10, 0);
+			resetPuck(true, puck, puck_dx, puck_dy, fb);
+			scores[0].renderTextBox();
+			continue;
 		} else if(puck.y + puck.h >= fb.getScreenY()) {
 			puck.y = fb.getScreenY() - 1 - puck.h;
 			puck_dy *= -1;
@@ -152,10 +169,12 @@ int main() {
 			} else if(result == 1) {
 				puck.x = players[p].getPaddleX() + players[p].getPaddleW() + 1;
 				puck_dx *= -1;
+				puck_dy += rand() % 3 == 0 ? rand() % 2 ? -1 : 1 : 0;
 				break;
 			} else if(result == 2) {
 				puck.x = players[p].getPaddleX() - puck.w - 1;
 				puck_dx *= -1;
+				puck_dy += rand() % 3 == 0 ? rand() % 2 ? -1 : 1 : 0;
 				break;
 			} else if(result == 3) {
 				puck.y = players[p].getPaddleY() + players[p].getPaddleH() + 1;
@@ -171,6 +190,7 @@ int main() {
 		draw(fb, scores, players, colors, middle, puck, NUMPLAYERS);
 	}
 	
+	delete [] score;
 	delete [] scores;
 	delete [] players;
 	delete [] colors;
