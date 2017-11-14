@@ -17,9 +17,11 @@ struct rectangle {
 };*/
 
 // textbox object definitions
-#include <iostream>
 bool textBox::charRender(char num, int x, int y, int w, int h) const {
 	character* render = activeFont->getChar(num);
+	if(render == nullptr) {
+		return false;
+	}
 	//int charX = x/((double)w/(render->getW()));
 	//int charY = y/((double)h/(render->getH()));
 	int charX = ((double)x/(double)w) * render->getW();
@@ -120,7 +122,7 @@ char textBox::getCharacter(int index) const {
 }
 
 char textBox::getCharacter(int row, int column) const {
-	return content[pos(row, column, numColumns)];
+	return content[pos(column, row, numColumns)];
 }
 
 void textBox::setCharacter(char in, int index) {
@@ -129,7 +131,7 @@ void textBox::setCharacter(char in, int index) {
 }
 
 void textBox::setCharacter(char in, int row, int column) {
-	content[pos(row, column, numColumns)] = in;
+	content[pos(column, row, numColumns)] = in;
 	return;
 }
 
@@ -242,6 +244,11 @@ bool textBox::renderTextBox() {
 							cache_map[pos(bx, by, box.w)] = bg_color;
 						}
 					}
+				}
+				bool test = render[numColumns - 1].x + text.x + render[numColumns - 1].w <= bx;
+				test = test || render[numColumns * numRows - 1].y + text.y + render[numColumns * numRows - 1].h <= by;
+				if(test) {
+					cache_map[pos(bx, by, box.w)] = bg_color;
 				}
 			} else {
 				cache_map[pos(bx, by, box.w)] = bg_color;
@@ -380,18 +387,18 @@ int paddle::testCollide(const rectangle& collider) const {
 
 void paddle::tickMovement() {
 	if(dx > 0) {
-		paddleobj.x++;
+		paddleobj.x += dx;
 		dx--;
 	} else if(dx < 0) {
-		paddleobj.x--;
+		paddleobj.x += dx;
 		dx++;
 	}
 	
 	if(dy > 0) {
-		paddleobj.y++;
+		paddleobj.y += dy;
 		dy--;
 	} else if(dy < 0) {
-		paddleobj.y--;
+		paddleobj.y += dy;
 		dy++;
 	}
 }
