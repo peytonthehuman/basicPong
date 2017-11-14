@@ -1,5 +1,6 @@
 #ifndef PONG_GAME_ELEMS_U
 #define PONG_GAME_ELEMS_H
+
 #include "./fb_main.h"
 #include "./pong_font.h"
 
@@ -44,6 +45,9 @@ class textBox {
 		char getCharacter(int row, int column) const;
 		void setCharacter(char in, int index);
 		void setCharacter(char in, int row, int column);
+		
+		char* getContentArray() const;
+		void setContentArray(char* in);
 
 		int getBoxW() const;
 		int getBoxH() const;

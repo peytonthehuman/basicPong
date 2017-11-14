@@ -135,6 +135,20 @@ void textBox::setCharacter(char in, int row, int column) {
 	return;
 }
 
+char* textBox::getContentArray() const {
+	return content;
+}
+
+void textBox::setContentArray(char* in) {
+	for(int cy = 0; cy < numRows; cy++) {
+		for(int cx = 0; cx < numColumns; cx++) {
+			content[pos(cx, cy, numColumns)] = in[pos(cx, cy, numColumns)];
+		}
+	}
+	
+	return;
+}
+
 int textBox::getBoxW() const {
 	return box.w;
 }

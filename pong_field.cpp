@@ -191,6 +191,15 @@ int field::getScore(unsigned int PID) const {
 
 void field::setPallete(triple* inPallete) {
 	pallete = inPallete;
+	for(int i = 0; i < NUMPLAYERS; i++) {
+		players[i].setColor(pallete[1]);
+		scores[i].setFGColor(pallete[1]);
+		scores[i].setBGColor(pallete[0]);
+		scores[i].renderTextBox();
+	}
+	middle.setFG_Color(pallete[1]);
+	middle.setBG_Color(pallete[0]);
+	middle.renderLine();
 	return;
 }
 

@@ -60,7 +60,7 @@ int main() {
 	system("setterm --cursor off");
 
 	srand(time(NULL));
-	fb_driver fb(false, false);
+	fb_driver fb(true, false);
 	fb.init();
 	
 	triple* pallete = new triple[2];
@@ -76,14 +76,13 @@ int main() {
 	field game(&fb);
 	game.setPuckStartSpeed(4);
 	game.setActiveFont(&mainFont);
-	game.setMaxScore(10);
+	game.setMaxScore(3);
 	game.setPallete(pallete);
 	
 	int i = 0;
 	bool aboveMax = false;
 	int winner = -1;
 	while(!aboveMax) {
-		draw(fb, game, 60);
 		bool tick = false;
 		if(i % 2 == 0) {
 			tick = game.tickPhysics();
@@ -107,10 +106,13 @@ int main() {
 				}
 			}
 		}
+		draw(fb, game, 60);
 	}
 	
 	textBox victory;
-	victory.init(10, 2);
+	int cols = 10;
+	int rows = 2;
+	victory.init(cols, rows);
 	victory.setActiveFont(&mainFont);
 	victory.setBoxW(fb.getScreenX()/2);
 	victory.setBoxH(fb.getScreenY()/3);
@@ -120,44 +122,24 @@ int main() {
 	victory.setTextMarginHorizontal(fb.getScreenY()/70);
 	victory.setFGColor(pallete[0]);
 	victory.setBGColor(pallete[1]);
-	
-	victory.setCharacter('P', 0, 0);
-	victory.setCharacter('L', 0, 1);
-	victory.setCharacter('A', 0, 2);
-	victory.setCharacter('Y', 0, 3);
-	victory.setCharacter('E', 0, 4);
-	victory.setCharacter('R', 0, 5);
-	victory.setCharacter(' ', 0, 6);
+	char* content = new char[cols * rows] {'P','L','A','Y','E','R',' ','E','R','R',' ',' ',' ','W','I','N','S',' ',' ',' '};
 	
 	switch(winner) {
-		case 0:
-			victory.setCharacter('O', 0, 7);
-			victory.setCharacter('N', 0, 8);
-			victory.setCharacter('E', 0, 9);
-			break;
 		case 1:
-			victory.setCharacter('T', 0, 7);
-			victory.setCharacter('W', 0, 8);
-			victory.setCharacter('O', 0, 9);
+			content[7] = 'O';
+			content[8] = 'N';
+			content[9] = 'E';
+			break;
+		case 0:
+			content[7] = 'T';
+			content[8] = 'W';
+			content[9] = '0';
 			break;
 		default:
-			victory.setCharacter('E', 0, 7);
-			victory.setCharacter('R', 0, 8);
-			victory.setCharacter('R', 0, 9);
 			break;
 	}
 	
-	victory.setCharacter(' ', 1, 0);
-	victory.setCharacter(' ', 1, 1);
-	victory.setCharacter(' ', 1, 2);
-	victory.setCharacter('W', 1, 3);
-	victory.setCharacter('I', 1, 4);
-	victory.setCharacter('N', 1, 5);
-	victory.setCharacter('S', 1, 6);
-	victory.setCharacter(' ', 1, 7);
-	victory.setCharacter(' ', 1, 8);
-	victory.setCharacter(' ', 1, 9);
-	
+	victory.setContentArray(content);
 	victory.renderTextBox();
 	
 	paintTex(victory.getCache(), victory.getBoxX(), victory.getBoxY(), victory.getBoxW(), victory.getBoxH(), &fb);
